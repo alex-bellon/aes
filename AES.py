@@ -39,6 +39,8 @@ Sbox_inv = (
             0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 )
 
+rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36]
+
 def make_matrix_list(byte_string):
     arr = []
     matrix = [[0] * 4 for i in range (0,4)]
@@ -90,6 +92,16 @@ def shift_rows(matrix):
 def inv_shift_rows(matrix):
     for i in range(len(matrix)):
         matrix[i] = rotate(matrix[i], -i)
+
+def add_key(matrix, key):
+    for i in range(0,4):
+        for j in range(0,4):
+            matrix[j][i] = matrix[j][i] ^ key[j][i]
+
+def inv_add_key(matrix, key):
+    for i in range(0,4):
+        for j in range(0,4):
+            matrix[j][i] = matrix[j][i] ^ key[j][i]
 
 parser = OptionParser()
 parser.add_option('--keysize', action='store', type='int', dest='keysize')

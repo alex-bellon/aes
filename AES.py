@@ -47,9 +47,9 @@ def make_matrix_list(byte_string):
     def loop(): #returns true if more to do, false if done
         for i in range(0,4):
             for j in range(0,4):
-                print(count)
                 if loop.count >= len(byte_string): 
                     return False
+                print("%d %d %d %d %d" % (loop.count, len(byte_string), i, j, byte_string[loop.count]))
                 matrix[j][i] = chr(byte_string[loop.count])
                 loop.count += 1
         return True
@@ -59,8 +59,7 @@ def make_matrix_list(byte_string):
         arr.append(matrix)
         matrix = [[0] * 4 for i in range (0,4)]
     count = loop.count
-    count = count % 16 if count % 16 != 0 else 16
-   
+    count = (16-count%16)
     pad = count
     for i in range(3, -1, -1):
        for j in range(3, -1, -1):
@@ -71,7 +70,26 @@ def make_matrix_list(byte_string):
     return arr
 
 def sub_bytes(matrix):
-    return
+    for i in range(0,4):
+        for j in range(0,4):
+            matrix[i][j] = Sbox[matrix[i][j]]
+
+
+def inv_sub_bytes(matrix):
+    for i in range(0,4):
+        for j in range(0,4):
+            matrix[i][j] = Sbox_inv[matrix[i][j]]
+
+def rotate(l, n):
+    return l[-n:] + l[:-n]
+
+def shift_rows(matrix):
+    for i in range(len(matrix)):
+        matrix[i] = rotate(matrix[i], i)
+
+def inv_shift_rows(matrix):
+    for i in range(len(matrix)):
+        matrix[i] = rotate(matrix[i], -i)
 
 parser = OptionParser()
 parser.add_option('--keysize', action='store', type='int', dest='keysize')
@@ -81,7 +99,14 @@ parser.add_option('--outputfile', action='store', type='string', dest='outputfil
 parser.add_option('--mode', action='store', type='string', dest='mode')
 (options, args) = parser.parse_args();
 
-print(make_matrix_list(b'abcdefghijklmnopqrstuvwxyz'))
-print(options.keysize)
+f = open(options.inputfile, 'rb')
+input_bytes = b''
+for b in f:
+    input_bytes += b
+print(input_bytes)
 
-
+k = open(options.keyfile, 'rb')
+key_bytes = b''
+for b in k:
+    key_bytes += b
+print(key_bytes)

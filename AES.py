@@ -103,6 +103,33 @@ def inv_add_key(matrix, key):
         for j in range(0,4):
             matrix[j][i] = matrix[j][i] ^ key[j][i]
 
+def key_schedule(key,n,r):
+    def rotword(word):
+        h = 0xff000000 & word
+        h >>= 24
+        word <<= 8
+        word = word & 0xffffff00
+        return (word|h)&0xffffffff
+    def subword(word):
+        new_word = 0
+        for i in range(0,4):
+            shift = (4-i-1)*8
+            new_word |= Sbox[(word&(i<<(shift))>>shift)] << shift
+        return new_word
+    curr_key = 0
+    for i in range(0, 4*r-1):
+        if(i < n):
+            curr_key += key[i:i+4]
+        else if(i >= n && i%n==0):
+            return
+        else if(i >= n && n > 6 && i%n==4):
+            return
+        else:
+            return
+        struct.pack(">I", 1)
+            
+key_schedule(1)
+
 parser = OptionParser()
 parser.add_option('--keysize', action='store', type='int', dest='keysize')
 parser.add_option('--keyfile', action='store', type='string', dest='keyfile')
@@ -110,6 +137,9 @@ parser.add_option('--inputfile', action='store', type='string', dest='inputfile'
 parser.add_option('--outputfile', action='store', type='string', dest='outputfile')
 parser.add_option('--mode', action='store', type='string', dest='mode')
 (options, args) = parser.parse_args();
+
+n = 4 if options.mode == '128' else 8
+r = 10 if options.mode == '128' else 14
 
 f = open(options.inputfile, 'rb')
 input_bytes = b''

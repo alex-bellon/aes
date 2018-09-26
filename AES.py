@@ -41,18 +41,20 @@ Sbox_inv = (
 
 rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36]
 
+##################### FILL MATRICES
+
 def make_matrix_list(byte_string):
     arr = []
-    matrix = [[0] * 4 for i in range (0,4)]
-    count = 0
+    matrix = [[0] * 4 for i in range (0,4)] #make 4x4 matrix
+    count = 0 #how many chars we have processed
 
     def loop(): #returns true if more to do, false if done
         for i in range(0,4):
             for j in range(0,4):
-                if loop.count >= len(byte_string): 
+                if loop.count >= len(byte_string): #we've encoded all the chars
                     return False
                 print("%d %d %d %d %d" % (loop.count, len(byte_string), i, j, byte_string[loop.count]))
-                matrix[j][i] = chr(byte_string[loop.count])
+                matrix[j][i] = chr(byte_string[loop.count]) #add in value, in col major order
                 loop.count += 1
         return True
 
@@ -61,15 +63,17 @@ def make_matrix_list(byte_string):
         arr.append(matrix)
         matrix = [[0] * 4 for i in range (0,4)]
     count = loop.count
-    count = (16-count%16)
-    pad = count
-    for i in range(3, -1, -1):
+    count = (16 - count % 16) #how much to pad
+    pad = count #val to pad with
+    for i in range(3, -1, -1): #start at end cell
        for j in range(3, -1, -1):
             if count > 0:
                 matrix[j][i] = pad
                 count -= 1
-    arr.append(matrix)
+    arr.append(matrix) 
     return arr
+
+##################### SUB BYTES
 
 def sub_bytes(matrix):
     for i in range(0,4):
@@ -82,6 +86,8 @@ def inv_sub_bytes(matrix):
         for j in range(0,4):
             matrix[i][j] = Sbox_inv[matrix[i][j]]
 
+##################### SHIFT ROWS
+
 def rotate(l, n):
     return l[-n:] + l[:-n]
 
@@ -92,6 +98,8 @@ def shift_rows(matrix):
 def inv_shift_rows(matrix):
     for i in range(len(matrix)):
         matrix[i] = rotate(matrix[i], -i)
+
+##################### ADD KEY
 
 def add_key(matrix, key):
     for i in range(0,4):
@@ -135,6 +143,8 @@ def key_schedule(key,n,r):
     for i in range(0,16*11,16):
         print(curr_key[i:i+16].hex())
             
+##################### USER INPUT
+
 parser = OptionParser()
 parser.add_option('--keysize', action='store', type='int', dest='keysize')
 parser.add_option('--keyfile', action='store', type='string', dest='keyfile')
@@ -143,6 +153,7 @@ parser.add_option('--outputfile', action='store', type='string', dest='outputfil
 parser.add_option('--mode', action='store', type='string', dest='mode')
 (options, args) = parser.parse_args();
 
+#setting rounds
 n = 8 if options.mode == '256' else 4
 r = 14 if options.mode == '256' else 10
 

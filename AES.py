@@ -113,23 +113,28 @@ def key_schedule(key,n,r):
     def subword(word):
         new_word = 0
         for i in range(0,4):
-            shift = (4-i-1)*8
-            new_word |= Sbox[(word&(i<<(shift))>>shift)] << shift
+            shift = i*8
+            new_word |= Sbox[(word>>shift)&0xff] << shift
         return new_word
-    curr_key = 0
-    for i in range(0, 4*r-1):
+    def getword(byte_str):
+        return struct.unpack(">I", byte_str)[0]
+    curr_key = b''
+    last_word = 0
+    for i in range(0, 4*11):
+        curr_word = b''
         if(i < n):
-            curr_key += key[i:i+4]
-        else if(i >= n && i%n==0):
-            return
-        else if(i >= n && n > 6 && i%n==4):
-            return
+            curr_word = struct.pack(">I", getword(key[i*4:i*4+4]))
+        elif(i >= n and i%n==0):
+            curr_word = struct.pack(">I", getword(curr_key[(i-4)*4:(i-3)*4]) ^ rotword(subword(last_word)) ^ rcon[i//n -1]<<24)
+        elif(i >= n and n > 6 and i%n==4):
+            curr_word = struct.pack(">I", getword(curr_key[(i-4)*4:(i-3)*4]) ^ subword(last_word))
         else:
-            return
-        struct.pack(">I", 1)
+            curr_word = struct.pack(">I", getword(curr_key[(i-4)*4:(i-3)*4]) ^ last_word)
+        curr_key += curr_word
+        last_word = getword(curr_word)
+    for i in range(0,16*11,16):
+        print(curr_key[i:i+16].hex())
             
-key_schedule(1)
-
 parser = OptionParser()
 parser.add_option('--keysize', action='store', type='int', dest='keysize')
 parser.add_option('--keyfile', action='store', type='string', dest='keyfile')
@@ -138,17 +143,17 @@ parser.add_option('--outputfile', action='store', type='string', dest='outputfil
 parser.add_option('--mode', action='store', type='string', dest='mode')
 (options, args) = parser.parse_args();
 
-n = 4 if options.mode == '128' else 8
-r = 10 if options.mode == '128' else 14
+n = 8 if options.mode == '256' else 4
+r = 14 if options.mode == '256' else 10
 
 f = open(options.inputfile, 'rb')
 input_bytes = b''
 for b in f:
     input_bytes += b
-print(input_bytes)
 
 k = open(options.keyfile, 'rb')
 key_bytes = b''
 for b in k:
     key_bytes += b
-print(key_bytes)
+
+print(key_schedule(key_bytes, n, r))

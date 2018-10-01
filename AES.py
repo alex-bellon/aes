@@ -333,6 +333,16 @@ def inv_do_rounds(matrix, r, keys):
         inv_sub_bytes(matrix)
     inv_add_key(matrix, keys[0])
 
+def matrix_copy(matrix):
+    copy = [[0]*4 for i in range(4)]
+    for i in range(4):
+        for j in range(4):
+            copy[i][j] = matrix[i][j]
+    return copy
+
+def get_initialization_vector(bits):
+    return make_matrix_list(bits, True)[0];
+
 def get_output(li):
     byte_string = b''
     for matrix in li:
@@ -349,6 +359,7 @@ parser.add_option('--keyfile', action='store', type='string', dest='keyfile')
 parser.add_option('--inputfile', action='store', type='string', dest='inputfile')
 parser.add_option('--outputfile', action='store', type='string', dest='outputfile')
 parser.add_option('--mode', action='store', type='string', dest='mode')
+parser.add_option('--cbc', action='store', type='string', dest='cbc');
 (options, args) = parser.parse_args();
 
 #setting rounds
@@ -370,11 +381,32 @@ key_bytes = key_schedule(key_bytes, n, nk)
 li = make_matrix_list(input_bytes, options.mode == 'decrypt')
 key = make_matrix_list(key_bytes, True)
 
-for matrix in li:
+iv = None
+curr_iv = iv
+next_iv_de = None
+
+if(options.cbc != None):
+    i = open(options.cbc, 'rb')
+    iv_bytes = b''
+    for b in i:
+        iv_bytes += b;
+    iv = get_initialization_vector(iv_bytes)
+
+curr_iv = iv
+for i in range(len(li)):
+    if(iv != None and options.mode == 'encrypt'):
+        add_key(li[i], curr_iv);
+    if(iv != None and options.mode == 'decrypt'):
+        next_iv_de = matrix_copy(li[i])
     if(options.mode == 'encrypt'):
-        do_rounds(matrix, r, key)
+        do_rounds(li[i], r, key)
     if(options.mode == 'decrypt'):
-        inv_do_rounds(matrix, r, key)
+        inv_do_rounds(li[i], r, key)
+    if(iv != None and options.mode == 'decrypt'):
+        add_key(li[i], curr_iv);
+        curr_iv = next_iv_de
+    if(iv != None and options.mode == 'encrypt'):
+        curr_iv = matrix_copy(li[i])
 
 output = get_output(li)
 if(options.mode == 'decrypt'):

@@ -9,7 +9,7 @@ Iterate over the number of words in the key. With N = 4 (128 bit) or 8 (256 bit)
 - `i >= n`, `n > 6`, and `i % n = 4`, then `XOR` together the `i-n`th word and the previous word substituted (from `Sbox`).
 - else, `XOR` the previous word with the `i-n`th word.
 
-## Fill in the  matrices:
+### Fill in the  matrices:
 Put the plaintext into a 4x4 column major matrix, and pad with `16 - a % 16` in the empty cells where `a` is the length of the plaintext in bytes.
 
 ## Step 1: SubBytes

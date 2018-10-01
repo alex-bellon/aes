@@ -1,5 +1,9 @@
 # AES Implementation
 
+An implementation of 128 & 256 bit AES, written in Python.
+
+*Nathan Huckleberry, Alex Bellon, Bo Miller*
+
 ## Step 0: Expand the key, fill in the matrices
 
 ### Key scheduling/expansion
@@ -18,7 +22,7 @@ Index into `Sbox` and replace each byte with it's counterpart in `Sbox`.
 
 ## Step 2: ShiftRows
 
-Shift each row 'i' left by 'i' places.
+Shift each row `i` left by `i` places.
 
 ## Step 3: MixCols
 
